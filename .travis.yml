@@ -2,12 +2,11 @@ language: python
 
 env:
   - CASSANDRA_VERSION=12
-  - CASSANDRA_VERSION=20
-  - CASSANDRA_VERSION=21
+
 
 python:
   - "2.7"
-  - "3.4"
+
 
 before_install:
   - sudo echo "deb http://www.apache.org/dist/cassandra/debian ${CASSANDRA_VERSION}x main" | sudo tee -a /etc/apt/sources.list
@@ -25,8 +24,21 @@ before_install:
   - sudo sh -c "echo 'JVM_OPTS=\"\${JVM_OPTS} -Djava.net.preferIPv4Stack=false\"' >> /etc/cassandra/cassandra-env.sh"
   - sudo service cassandra start
 
+   # add for profile
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+
 install:
+# add for profile
+  - sudo apt-get install -qq g++-4.8
+  - export CXX="g++-4.8"
+  - pip install nose-cprof
+  - pip install properform
+
   - "pip install -r requirements.txt --use-mirrors"
 
 script:
-  - "nosetests cqlengine/tests --no-skip"
+  - nosetests cqlengine/tests --no-skip --with-cprofile --cprofile-stats-erase --cprofile-stats-file=profile_cqlengine_33768fe8ea_0
+  - python -m properform Push 47.88.50.110:15554 asdf_cqlengine_33768fe8ea_0 ./profile_cqlengine_33768fe8ea_0
+ #2017-09-14 12:28:59 modified at 0
